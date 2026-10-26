@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>InstaSaved</title>
+<style>
+:root{--bg:#f6f5f2;--panel:#fff;--ink:#1b1b1f;--mute:#6c6a73;--line:#e3e1dc;--acc:#c13584;--acc2:#f58529;--ok:#1f9d55;--err:#d64545;--chip:#efede8}
+@media (prefers-color-scheme:dark){:root{--bg:#121214;--panel:#1c1c20;--ink:#ececf0;--mute:#9a98a3;--line:#2c2c32;--chip:#26262c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.logo{font-weight:800;font-size:18px;background:linear-gradient(90deg,var(--acc2),var(--acc));-webkit-background-clip:text;background-clip:text;color:transparent}
+#statusPill{font-size:12px;color:var(--mute);flex:1;min-width:140px}
+#statusPill b{color:var(--ink)}
+nav{display:flex;gap:4px;overflow-x:auto;padding:8px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+nav button{background:none;border:0;padding:7px 12px;border-radius:8px;color:var(--mute);font:inherit;cursor:pointer;white-space:nowrap}
+nav button.on{background:var(--chip);color:var(--ink);font-weight:600}
+main{max-width:1280px;margin:0 auto;padding:16px}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 12px;border-radius:8px;font:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.danger{color:var(--err)}
+.btn:disabled{opacity:.5;cursor:default}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;max-width:100%}
+textarea{width:100%;min-height:90px;font-family:ui-monospace,monospace;font-size:13px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.bar input[type=search]{flex:1;min-width:180px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+.chip{background:var(--chip);border:1px solid transparent;border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap;font-size:13px}
+.chip.on{border-color:var(--acc);color:var(--acc);font-weight:600}
+.chip small{color:var(--mute);margin-left:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+@media (max-width:480px){.grid{grid-template-columns:repeat(2,1fr);gap:8px}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.thumb{position:relative;aspect-ratio:1;background:var(--chip);cursor:pointer}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.badge{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:2px 7px;border-radius:999px}
+.meta{padding:8px 10px;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.owner{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat{font-size:12px;color:var(--acc)}
+.links{display:flex;gap:6px}
+.links a,.links button{flex:1;font-size:12px;padding:5px;justify-content:center}
+.empty{text-align:center;color:var(--mute);padding:50px 10px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.panel h3{margin:0 0 10px;font-size:16px}
+.muted{color:var(--mute);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.row label{min-width:190px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+pre#logs{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:12px;white-space:pre-wrap;max-height:70vh;overflow:auto}
+dialog{border:0;border-radius:14px;padding:0;max-width:min(920px,96vw);width:100%;background:var(--panel);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+.vwrap{display:flex;flex-direction:column}
+.media{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;background:#000}
+.media>*{flex:0 0 100%;max-height:70vh;object-fit:contain;scroll-snap-align:center;width:100%}
+.vinfo{padding:14px;display:flex;flex-direction:column;gap:8px}
+.cap{white-space:pre-wrap;font-size:14px;max-height:160px;overflow:auto;color:var(--mute)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
+.toast.show{opacity:1}
+details summary{cursor:pointer;color:var(--mute);margin-top:10px}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo">InstaSaved</span>
+  <span id="statusPill">Đang tải…</span>
+  <button class="btn pri" id="syncBtn" onclick="doSync(false)">⟳ Đồng bộ ngay</button>
+  <button class="btn hide" id="stopBtn" onclick="stopSync()">Dừng</button>
+</header>
+<nav>
+  <button data-tab="lib" class="on">Thư viện</button>
+  <button data-tab="rules">Quy tắc phân loại</button>
+  <button data-tab="settings">Tài khoản &amp; cài đặt</button>
+  <button data-tab="log">Nhật ký</button>
+</nav>
+<main>
+  <!-- THƯ VIỆN -->
+  <section id="tab-lib">
+    <div class="bar">
+      <input type="search" id="search" placeholder="Tìm theo chú thích, @tác giả, #hashtag…">
+      <select id="ftype">
+        <option value="">Mọi loại</option><option value="image">Ảnh</option>
+        <option value="album">Album</option><option value="video">Video</option>
+      </select>
+      <a class="btn" id="exportBtn" href="/api/export.csv">⬇ Xuất link (CSV)</a>
+    </div>
+    <div class="chips" id="cats"></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty hide" id="empty">Chưa có bài nào. Đăng nhập Instagram ở tab “Tài khoản &amp; cài đặt” rồi bấm Đồng bộ.</div>
+    <div style="text-align:center;margin:18px 0"><button class="btn hide" id="more" onclick="loadPosts(false)">Tải thêm</button></div>
+  </section>
+
+  <!-- QUY TẮC -->
+  <section id="tab-rules" class="hide">
+    <div class="panel">
+      <h3>Thêm quy tắc</h3>
+      <p class="muted">Bài được xếp vào danh mục của quy tắc <b>đầu tiên</b> khớp (ưu tiên số nhỏ trước). Không khớp quy tắc nào → dùng tên Bộ sưu tập trên Instagram, nếu không có → danh mục mặc định.</p>
+      <div class="row">
+        <select id="rKind">
+          <option value="hashtag">Hashtag</option>
+          <option value="owner">Tài khoản (@tác giả)</option>
+          <option value="keyword">Từ khoá trong chú thích</option>
+          <option value="collection">Bộ sưu tập Instagram</option>
+          <option value="type">Loại (image / video / album)</option>
+        </select>
+        <input id="rValue" placeholder="vd: travel, natgeo, ẩm thực">
+        <span>→</span>
+        <input id="rCat" placeholder="Danh mục (vd: Du lịch)" list="catList">
+        <datalist id="catList"></datalist>
+        <input id="rPri" type="number" value="100" style="width:80px" title="Ưu tiên">
+        <button class="btn pri" onclick="addRule()">Thêm</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="row" style="justify-content:space-between"><h3 style="margin:0">Danh sách quy tắc</h3>
+        <button class="btn" onclick="reclassify()">Áp dụng lại cho tất cả bài</button></div>
+      <table><thead><tr><th>Ưu tiên</th><th>Loại</th><th>Giá trị</th><th>Danh mục</th><th></th></tr></thead>
+      <tbody id="rulesBody"></tbody></table>
+    </div>
+  </section>
+
+  <!-- CÀI ĐẶT -->
+  <section id="tab-settings" class="hide">
+    <div class="panel">
+      <h3>Tài khoản Instagram</h3>
+      <div id="acct" class="row"></div>
+      <div id="loginBox">
+        <p class="muted"><b>Cách khuyên dùng – dán cookie:</b> trên máy tính, đăng nhập instagram.com → F12 → tab <i>Network</i> → tải lại trang → bấm một request bất kỳ tới instagram.com → copy toàn bộ dòng <code>Cookie:</code> ở Request Headers và dán vào đây. (Hoặc dán JSON xuất từ extension Cookie-Editor.)</p>
+        <textarea id="cookieText" placeholder="sessionid=...; csrftoken=...; ds_user_id=..."></textarea>
+        <div class="row"><button class="btn pri" onclick="loginCookies()">Đăng nhập bằng cookie</button></div>
+        <details><summary>Hoặc đăng nhập bằng mật khẩu (dễ bị Instagram chặn)</summary>
+          <div class="row"><input id="lu" placeholder="Tên đăng nhập"><input id="lp" type="password" placeholder="Mật khẩu">
+            <button class="btn" onclick="loginPw()">Đăng nhập</button></div>
+          <div class="row hide" id="twofa"><input id="lcode" placeholder="Mã 2FA"><button class="btn" onclick="login2fa()">Xác nhận</button></div>
+        </details>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Đồng bộ</h3>
+      <div class="row"><label>Tự động đồng bộ</label><select id="s_auto_sync"><option value="1">Bật</option><option value="0">Tắt</option></select></div>
+      <div class="row"><label>Chu kỳ (giờ)</label><input id="s_interval_hours" type="number" min="1" step="1" style="width:100px"></div>
+      <div class="row"><label>Nghỉ giữa mỗi bài (giây)</label><input id="s_delay_seconds" type="number" min="1" style="width:100px"><span class="muted">càng lớn càng an toàn cho tài khoản</span></div>
+      <div class="row"><label>Dừng khi gặp N bài đã có</label><input id="s_stop_after_known" type="number" min="1" style="width:100px"></div>
+      <div class="row"><label>Đọc Bộ sưu tập Instagram</label><select id="s_use_collections"><option value="1">Có</option><option value="0">Không</option></select></div>
+      <div class="row"><label>Danh mục mặc định</label><input id="s_default_category"></div>
+      <div class="row"><button class="btn pri" onclick="saveSettings()">Lưu cài đặt</button>
+        <button class="btn" onclick="doSync(true)">Đồng bộ toàn bộ (quét lại từ đầu)</button></div>
+    </div>
+  </section>
+
+  <section id="tab-log" class="hide">
+    <div class="bar"><button class="btn" onclick="loadLogs()">Làm mới</button></div>
+    <pre id="logs"></pre>
+  </section>
+</main>
+
+<dialog id="viewer"><div class="vwrap">
+  <div class="media" id="vMedia"></div>
+  <div class="vinfo">
+    <div class="row" style="justify-content:space-between;margin:0"><b id="vOwner"></b><span class="muted" id="vDate"></span></div>
+    <div class="cap" id="vCap"></div>
+    <div class="row">
+      <a class="btn pri" id="vLink" target="_blank" rel="noopener">Mở trên Instagram ↗</a>
+      <button class="btn" id="vCopy">Sao chép link</button>
+      <input id="vCat" list="catList" placeholder="Danh mục" style="width:160px">
+      <button class="btn" id="vSetCat">Đổi danh mục</button>
+      <button class="btn danger" id="vDel">Xoá</button>
+      <button class="btn" onclick="viewer.close()">Đóng</button>
+    </div>
+    <div class="muted" id="vFiles"></div>
+  </div>
+</div></dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => (s ?? "").toString().replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let state = {cat:"", offset:0, items:[], total:0};
+
+async function api(path, opts={}) {
+  if (opts.json !== undefined) { opts.body = JSON.stringify(opts.json); opts.headers = {"Content-Type":"application/json"}; }
+  const r = await fetch(path, opts);
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.detail || r.statusText);
+  return data;
+}
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2600); }
+function copy(text){ navigator.clipboard?.writeText(text).then(()=>toast("Đã sao chép link"), ()=>prompt("Link:", text)); }
+
+// tabs
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x===b));
+  document.querySelectorAll("main>section").forEach(s => s.classList.toggle("hide", s.id !== "tab-"+b.dataset.tab));
+  ({rules:loadRules, settings:loadSettings, log:loadLogs})[b.dataset.tab]?.();
+});
+
+// status
+async function loadStatus(){
+  try {
+    const s = await api("/api/status");
+    const pill = $("#statusPill");
+    if (!s.logged_in) pill.innerHTML = "⚠ Chưa đăng nhập Instagram";
+    else if (s.running) pill.innerHTML = `<b>Đang đồng bộ…</b> ${s.progress} bài mới`;
+    else pill.innerHTML = `@${esc(s.username)} · <b>${s.total}</b> bài` + (s.last_result ? ` · ${esc(s.last_result)}` : "");
+    $("#syncBtn").disabled = s.running || !s.logged_in;
+    $("#stopBtn").classList.toggle("hide", !s.running);
+    if (state.wasRunning && !s.running) { loadCats(); loadPosts(true); }
+    if (s.running && s.progress !== state.lastProg) { state.lastProg = s.progress; if (s.progress % 5 === 1) { loadCats(); loadPosts(true); } }
+    state.wasRunning = s.running;
+    return s;
+  } catch(e) { $("#statusPill").textContent = "Lỗi: " + e.message; }
+}
+async function doSync(full){
+  if (full && !confirm("Quét lại toàn bộ mục Đã lưu? Có thể mất khá lâu nếu bạn lưu nhiều bài.")) return;
+  try { await api("/api/sync?full="+full, {method:"POST"}); toast("Đã bắt đầu đồng bộ"); loadStatus(); } catch(e){ toast(e.message); }
+}
+async function stopSync(){ await api("/api/sync/stop",{method:"POST"}); toast("Đang dừng…"); }
+
+// library
+async function loadCats(){
+  const cats = await api("/api/categories");
+  const total = cats.reduce((a,c)=>a+c.count,0);
+  $("#cats").innerHTML = [`<span class="chip ${state.cat===""?"on":""}" data-c="">Tất cả<small>${total}</small></span>`]
+    .concat(cats.map(c => `<span class="chip ${state.cat===c.name?"on":""}" data-c="${esc(c.name)}">${esc(c.name)}<small>${c.count}</small></span>`)).join("");
+  $("#cats").querySelectorAll(".chip").forEach(ch => ch.onclick = () => { state.cat = ch.dataset.c; loadCats(); loadPosts(true); });
+  $("#catList").innerHTML = cats.map(c => `<option value="${esc(c.name)}">`).join("");
+  $("#exportBtn").href = "/api/export.csv" + (state.cat ? "?category="+encodeURIComponent(state.cat) : "");
+}
+async function loadPosts(reset){
+  if (reset) { state.offset = 0; state.items = []; }
+  const p = new URLSearchParams({category:state.cat, search:$("#search").value, media_type:$("#ftype").value, offset:state.offset, limit:60});
+  const d = await api("/api/posts?"+p);
+  state.items = state.items.concat(d.items); state.total = d.total; state.offset += d.items.length;
+  render();
+}
+function render(){
+  $("#grid").innerHTML = state.items.map((p,i) => `
+    <div class="card">
+      <div class="thumb" onclick="openPost(${i})">
+        ${p.thumb ? `<img loading="lazy" src="${p.thumb}" alt="">` : ""}
+        ${p.media_type!=="image" ? `<span class="badge">${p.media_type==="video"?"▶ Video":"▦ "+p.files.length}</span>` : ""}
+      </div>
+      <div class="meta">
+        <span class="owner">@${esc(p.owner)}</span>
+        <span class="cat">${esc(p.category)}${p.manual?" ✎":""}</span>
+        <div class="links">
+          <a class="btn" href="${p.url}" target="_blank" rel="noopener">Link ↗</a>
+          <button class="btn" onclick="copy('${p.url}')">Copy</button>
+        </div>
+      </div>
+    </div>`).join("");
+  $("#empty").classList.toggle("hide", state.items.length > 0);
+  $("#more").classList.toggle("hide", state.items.length >= state.total);
+}
+let cur = null;
+function openPost(i){
+  cur = state.items[i];
+  $("#vMedia").innerHTML = cur.files.map(f => {
+    const u = "/media/" + f.split("/").map(encodeURIComponent).join("/");
+    return f.endsWith(".mp4") ? `<video src="${u}" controls playsinline preload="metadata"></video>` : `<img src="${u}" loading="lazy">`;
+  }).join("") || "<div style='color:#fff;padding:40px'>Không có file</div>";
+  $("#vOwner").textContent = "@" + cur.owner;
+  $("#vDate").textContent = cur.taken_at + (cur.collection ? " · " + cur.collection : "");
+  $("#vCap").textContent = cur.caption || "";
+  $("#vLink").href = cur.url;
+  $("#vCat").value = cur.category;
+  $("#vFiles").textContent = "Thư mục: media/" + (cur.files[0]||"").split("/")[0] + " · " + cur.files.length + " file";
+  $("#viewer").showModal();
+}
+$("#vCopy").onclick = () => copy(cur.url);
+$("#vSetCat").onclick = async () => {
+  try { const p = await api("/api/posts/"+cur.shortcode, {method:"PATCH", json:{category:$("#vCat").value}});
+    Object.assign(cur, p); render(); loadCats(); toast("Đã chuyển sang: "+p.category); viewer.close();
+  } catch(e){ toast(e.message); }
+};
+$("#vDel").onclick = async () => {
+  if (!confirm("Xoá file đã tải của bài này? (Không ảnh hưởng tới Instagram; lần quét toàn bộ sau có thể tải lại.)")) return;
+  await api("/api/posts/"+cur.shortcode, {method:"DELETE"}); viewer.close(); loadCats(); loadPosts(true);
+};
+let st; $("#search").oninput = () => { clearTimeout(st); st = setTimeout(()=>loadPosts(true), 300); };
+$("#ftype").onchange = () => loadPosts(true);
+
+// rules
+const KIND = {hashtag:"Hashtag", owner:"Tài khoản", keyword:"Từ khoá", collection:"Bộ sưu tập", type:"Loại"};
+function renderRules(rs){
+  $("#rulesBody").innerHTML = rs.map(r => `<tr><td>${r.priority}</td><td>${KIND[r.kind]||r.kind}</td><td>${esc(r.value)}</td><td><b>${esc(r.category)}</b></td>
+    <td><button class="btn danger" onclick="delRule(${r.id})">Xoá</button></td></tr>`).join("") ||
+    `<tr><td colspan="5" class="muted">Chưa có quy tắc nào.</td></tr>`;
+}
+async function loadRules(){ renderRules(await api("/api/rules")); }
+async function addRule(){
+  try { renderRules(await api("/api/rules",{method:"POST",json:{kind:$("#rKind").value,value:$("#rValue").value,category:$("#rCat").value,priority:+$("#rPri").value||100}}));
+    $("#rValue").value=""; toast("Đã thêm. Bấm “Áp dụng lại” để phân loại các bài cũ.");
+  } catch(e){ toast(e.message); }
+}
+async function delRule(id){ renderRules(await api("/api/rules/"+id,{method:"DELETE"})); }
+async function reclassify(){ const r = await api("/api/reclassify",{method:"POST"}); toast(r.changed+" bài đã đổi danh mục"); loadCats(); loadPosts(true); }
+
+// settings
+async function loadSettings(){
+  const s = await api("/api/settings"), st = await loadStatus();
+  for (const [k,v] of Object.entries(s)) { const el = $("#s_"+k); if (el) el.value = v; }
+  $("#acct").innerHTML = st?.logged_in
+    ? `✅ Đã đăng nhập: <b>@${esc(st.username)}</b> <button class="btn danger" onclick="logout()">Đăng xuất</button>`
+    : `<span class="muted">Chưa đăng nhập.</span>`;
+  $("#loginBox").classList.toggle("hide", !!st?.logged_in);
+}
+async function saveSettings(){
+  const body = {}; document.querySelectorAll("[id^=s_]").forEach(el => body[el.id.slice(2)] = el.value);
+  await api("/api/settings",{method:"POST",json:body}); toast("Đã lưu cài đặt");
+}
+async function loginCookies(){
+  try { const r = await api("/api/login/cookies",{method:"POST",json:{cookies:$("#cookieText").value}});
+    $("#cookieText").value=""; toast("Đăng nhập thành công: @"+r.username); loadSettings();
+  } catch(e){ toast(e.message); }
+}
+async function loginPw(){
+  try { const r = await api("/api/login/password",{method:"POST",json:{username:$("#lu").value,password:$("#lp").value}});
+    if (r.need_2fa) { $("#twofa").classList.remove("hide"); toast("Nhập mã 2FA"); return; }
+    toast("Đăng nhập thành công"); loadSettings();
+  } catch(e){ toast(e.message); }
+}
+async function login2fa(){
+  try { await api("/api/login/2fa",{method:"POST",json:{code:$("#lcode").value}}); toast("Đăng nhập thành công"); loadSettings(); }
+  catch(e){ toast(e.message); }
+}
+async function logout(){ if (confirm("Đăng xuất Instagram khỏi InstaSaved?")) { await api("/api/logout",{method:"POST"}); loadSettings(); } }
+
+async function loadLogs(){ const l = await api("/api/logs"); const el=$("#logs"); el.textContent = l.join("\n") || "(trống)"; el.scrollTop = el.scrollHeight; }
+
+loadStatus(); loadCats(); loadPosts(true);
+setInterval(loadStatus, 5000);
+setInterval(() => { if (!$("#tab-log").classList.contains("hide")) loadLogs(); }, 5000);
+</script>
+</body>
+</html>

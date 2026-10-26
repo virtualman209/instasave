@@ -1,0 +1,5 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+instaloader>=4.13
+requests>=2.31
+pillow>=10.0

@@ -1,0 +1,16 @@
+# Cấu hình riêng (mật khẩu, đường dẫn, cổng) nằm trong file .env – không đưa lên GitHub.
+# Lần đầu: cp .env.example .env  rồi sửa .env
+services:
+  instasaved:
+    build: .
+    image: instasaved:local
+    container_name: instasaved
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8088}:8000"
+    environment:
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
+      - APP_USER=${APP_USER:-admin}
+      - APP_PASSWORD=${APP_PASSWORD:?Hãy đặt APP_PASSWORD trong file .env}
+    volumes:
+      - ${DATA_PATH:?Hãy đặt DATA_PATH trong file .env}:/data
