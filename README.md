@@ -32,8 +32,8 @@ instagram/                 ← shared folder trên OMV (truy cập được qua 
 2. SSH vào mini PC rồi tải code:
    ```bash
    cd /srv/dev-disk-by-uuid-XXXX/appdata        # thư mục bất kỳ để chứa code
-   git clone https://github.com/GITHUB_USER/instasaved.git
-   cd instasaved
+   git clone https://github.com/virtualman209/instasave.git
+   cd instasave
    cp .env.example .env
    nano .env        # sửa APP_PASSWORD, DATA_PATH (đường dẫn ở bước 1), PORT
    ./update.sh
@@ -43,7 +43,7 @@ instagram/                 ← shared folder trên OMV (truy cập được qua 
 ## Cập nhật
 
 ```bash
-cd /srv/dev-disk-by-uuid-XXXX/appdata/instasaved
+cd /srv/dev-disk-by-uuid-XXXX/appdata/instasave
 ./update.sh            # tải bản mới từ GitHub, build lại nếu có thay đổi
 ./update.sh --force    # build lại kể cả khi code không đổi (cập nhật instaloader khi Instagram đổi API)
 ```
